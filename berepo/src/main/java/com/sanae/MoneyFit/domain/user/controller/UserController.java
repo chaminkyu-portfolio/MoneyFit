@@ -1,0 +1,232 @@
+package com.sanae.MoneyFit.domain.user.controller;
+
+
+
+import com.sanae.MoneyFit.domain.user.dto.request.*;
+import com.sanae.MoneyFit.domain.user.dto.request.*;
+import com.sanae.MoneyFit.domain.user.dto.response.SearchInfoDto;
+import com.sanae.MoneyFit.domain.user.enums.Provider;
+import com.sanae.MoneyFit.global.web.response.ApiResponse;
+import com.sanae.MoneyFit.domain.user.dto.JwtToken;
+import com.sanae.MoneyFit.domain.user.dto.response.UserDto;
+import com.sanae.MoneyFit.domain.user.service.UserService;
+import com.sanae.MoneyFit.global.security.jwt.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/user")
+public class UserController {
+
+    private final UserService userService;
+
+    private final JwtTokenProvider jwtTokenProvider;
+
+
+    /**
+     * 설문하기
+     */
+
+    @PostMapping("/survey")
+    @Operation(summary = "설문 저장 API", description = "설문을 확인합니다.")
+    public ResponseEntity<?> survey(@RequestHeader("Authorization") String token, @RequestBody SurveyRequestDto surveyRequestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.survey(userId,surveyRequestDto);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess("설문이 저장되었습니다."));
+    }
+
+
+    /**
+     * 내 정보 보기
+     */
+    @GetMapping("/my-info")
+    @Operation(summary = "내 정보 확인 API", description = "내 닉네임을 확인합니다.")
+
+    public ResponseEntity<?> myInfo(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(userService.myInfo(userId)));
+    }
+
+
+    /**
+     * 이메일 중복체크
+     *
+     * @param email
+     * @return
+     */
+    @PostMapping("/email-duplicate-check")
+    @Operation(summary = "이메일 중복확인 API", description = "이메일을 중복을 확인합니다.")
+
+    public ResponseEntity<?> checkEmailDuplicate(@RequestParam("email") String email) {
+        String result = userService.checkEmailDuplicate(email);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    /**
+     * 닉네임 중복체크
+     *
+     * @param nickname
+     * @return
+     */
+    @PostMapping("/nickname-duplicate-check")
+    @Operation(summary = "닉네임 중복확인 API", description = "닉네임 중복을 확인합니다.")
+    public ResponseEntity<?> checknicknameDuplicate(@RequestParam("nickname") String nickname) {
+        String result = userService.checknicknameDuplicate(nickname);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    /**
+     * 로그인
+     *
+     * @param signInDto
+     * @return
+     */
+    @PostMapping("/sign-in")
+    @Operation(summary = "로그인 API", description = "로그인을 합니다.")
+    public ResponseEntity<?> signIn(@RequestBody SignInDto signInDto) {
+        String email = signInDto.getEmail();
+        String password = signInDto.getPassword();
+        JwtToken jwtToken = userService.signIn(email, password);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(jwtToken));
+    }
+
+    /**
+     * 회원가입
+     *
+     * @param signUpDto
+     * @return
+     */
+    @PostMapping("/sign-up")
+    @Operation(summary = "회원가입 API", description = "회원가입을 합니다.")
+    public ResponseEntity<?> signUp(@RequestBody SignUpDto signUpDto) {
+        // 회원가입 처리
+        UserDto savedMemberDto = userService.signUp(signUpDto);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(savedMemberDto));
+    }
+
+    /**
+     * 대학교 검색
+     */
+    @GetMapping("/university")
+    @Operation(summary = "대학교 검색 조회", description = "대학교를 검색합니다.")
+    public ResponseEntity<?> getUniversities(@RequestParam("keyword") String keyword) {
+        List<SearchInfoDto> result = userService.searchUniversities(keyword);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result, "대학교 검색 성공"));
+    }
+
+
+    /**
+     * 토큰 재발급
+     *
+     * @param reissueDto
+     * @return
+     */
+    @PostMapping("/token/reissue")
+    @Operation(summary = "토큰 재발급 API", description = "액세스토큰,리프레쉬토큰을 재발급합니다.(RTR)")
+    public ResponseEntity<?> reissue(@RequestBody ReissueDto reissueDto) {
+        // 토큰 재발급 처리
+        JwtToken jwtToken = userService.reissue(reissueDto);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(jwtToken));
+    }
+
+    /**
+     * 마이페이지 비밀번호 재설정
+     * @param token 인증 토큰
+     * @param dto 기존 비밀번호와 새 비밀번호
+     */
+    @PostMapping("/mypage-password")
+    @Operation(summary = "비밀번호 재설정 API", description = "마이페이지에서 비밀번호를 재설정합니다.")
+    public ResponseEntity<?> mypageResetPassword(@RequestHeader("Authorization") String token,
+                                                 @RequestBody MypageResetPasswordRequestDto dto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.mypageResetPassword(userId, dto.getExsPassword(), dto.getNewPassword());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "비밀번호 변경 완료."));
+    }
+
+    /**
+     * 비밀번호 찾기에서 비밀번호 설정
+     */
+    @PatchMapping("/password")
+    @Operation(summary = "비밀번호 찾기 API", description = "비밀번호를 찾습니다.")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
+        String result=userService.resetPassword(resetPasswordDto);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    /**
+     * 마케팅 수신 여부 업데이트
+     */
+    @PatchMapping("/marketing")
+    @Operation(summary = "마케팅 수신 동의/거부 API", description = "마케팅 수신 여부를 업데이트합니다.")
+    public ResponseEntity<?> updateIsMarketing(@RequestHeader("Authorization") String token,
+                                               @RequestBody MarketingRequestDto marketingRequestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.updateIsMarketing(userId, marketingRequestDto.isMarketing());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "마케팅 수신 동의/거부 업데이트 성공"));
+    }
+
+
+    @PatchMapping("/mypage-nickname")
+    @Operation(summary = "닉네임 재설정 API", description = "닉네임을 재설정합니다.")
+    public ResponseEntity<?> resetNickname(@RequestHeader("Authorization") String token,@RequestParam("nickname") String nickname) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        String result=userService.mypageResetNickname(userId,nickname);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    @DeleteMapping("/logout")
+    @Operation(summary = "로그아웃 API", description = "로그아웃 합니다.")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        String result=userService.logout(userId);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    /**
+     * 프로필 이미지 변경 API
+     * @param token Bearer 토큰
+     * @param requestDto 프로필 이미지 URL 요청 DTO
+     * @return 성공 메시지
+     */
+    @PutMapping("/profileImage")
+    @Operation(summary = "프로필 이미지 변경 API", description = "프로필 이미지를 변경합니다.")
+    public ResponseEntity<?> updateProfileImage(
+            @RequestHeader("Authorization") String token,
+            @RequestBody UpdateProfileImageDto requestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.updateProfileImage(userId, requestDto.getProfileImageUrl());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "프로필 이미지 변경 성공"));
+    }
+
+    /**
+     * 회원 탈퇴
+     */
+    @DeleteMapping("/delete")
+    @Operation(summary = "회원 탈퇴 API", description = "회원 탈퇴를 진행합니다.")
+    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.deleteUser(userId);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "회원탈퇴 성공"));
+    }
+
+    /**
+     * 유저 회원가입 체크
+     *
+     * @param oauthCheckRequestDto Provider정보
+     * @return
+     */
+    @PostMapping("/oauth-check")
+    @Operation(summary = "유저 회원가입 체크 API", description = "유저가 이미 회원가입을 했는지 확인합니다.")
+    public ResponseEntity<?> checkOauth(@RequestBody OauthCheckRequestDto oauthCheckRequestDto) {
+        String result = userService.checkOauth(oauthCheckRequestDto);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+}

@@ -1,0 +1,36 @@
+
+pipeline {
+  agent any
+  options { timestamps() }
+
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+
+    stage('Build & Test') {
+      steps {
+        sh '''
+          chmod +x ./gradlew || true
+          ./gradlew clean test bootJar
+        '''
+      }
+      post { always { junit '**/build/test-results/test/*.xml' } }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build -t e207-be:latest .'
+      }
+    }
+
+    stage('Deploy (docker compose)') {
+      steps {
+        dir('/opt/e207-be') {
+          sh '''
+            docker compose up -d --remove-orphans
+            docker image prune -f
+          '''
+        }
+      }
+    }
+  }
+}

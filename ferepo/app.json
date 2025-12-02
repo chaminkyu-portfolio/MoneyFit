@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "머니핏",
+    "slug": "moneyfit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/images/logo_pig.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./src/assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "googleServicesFile": "./android/app/google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/images/logo_pig.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.moneyfit.app",
+      "usesCleartextTraffic": true,
+      "networkSecurityConfig": "network_security_config.xml"
+    },
+    "web": {
+      "favicon": "./src/assets/images/logo_pig.png"
+    },
+    "plugins": [
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "561dd8b8-9d0e-44a7-81dd-bd3ba0186fe9"
+      }
+    },
+    "owner": "chaminkyu2"
+  }
+}

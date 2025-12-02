@@ -1,0 +1,1 @@
+export { useGetRanking } from './useRankList';

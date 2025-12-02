@@ -1,0 +1,152 @@
+---
+description: React Native 컴포넌트 생성 규칙 (Moneyfit 프로젝트)
+globs: ['src/**/*.tsx']
+alwaysApply: false
+---
+
+### 1. 파일 구조 및 명명 규칙
+
+#### **컴포넌트 파일 위치**
+
+- 모든 컴포넌트는 `src/components/` 디렉토리에 위치합니다.
+- **도메인별** 컴포넌트는 `components/domain/{domain-name}/`에 위치합니다. (예: `components/domain/auth/`)
+- **여러 도메인에서 재사용**되는 공통 컴포넌트는 `components/common/`에 위치합니다.
+
+#### **파일 및 컴포넌트 명명 규칙**
+
+- 컴포넌트 파일명과 그 안의 컴포넌트 이름은 \*\*파스칼 케이스(PascalCase)\*\*로 통일합니다.
+- 파일 확장자는 \*\*`.tsx`\*\*를 사용합니다.
+- 예시: `AuthButton.tsx` → `const AuthButton = () => ...`
+
+### 2. 컴포넌트 작성 패턴
+
+#### **함수형 컴포넌트 및 타입스크립트**
+
+- 모든 컴포넌트는 **화살표 함수 기반의 함수형 컴포넌트**로 작성합니다.
+- **props 인터페이스**는 **`I컴포넌트명Props`** 형식으로 정의합니다. (예: `IAuthButtonProps`)
+
+#### **기본 컴포넌트 템플릿**
+
+```tsx
+import React, { useState } from 'react';
+import styled from 'styled-components/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { theme } from '../../styles/theme';
+
+/**
+ * ComponentName의 props 인터페이스
+ */
+interface IComponentNameProps {
+  /** prop1에 대한 설명 */
+  prop1: string;
+  /** prop2에 대한 설명 */
+  prop2?: number;
+}
+
+/**
+ * ComponentName 컴포넌트에 대한 설명
+ * * @param props - 컴포넌트 props
+ * @returns React 컴포넌트
+ */
+const ComponentName = ({ prop1, prop2 = 0 }: IComponentNameProps) => {
+  // 상태 관리
+  const [state, setState] = useState<string>('');
+
+  // 이벤트 핸들러
+  const handleEvent = () => {
+    setState('new value');
+  };
+
+  // 렌더링
+  return (
+    <Container>
+      <TitleText>{prop1}</TitleText>
+      {prop2 > 0 && <InfoText>Prop2: {prop2}</InfoText>}
+    </Container>
+  );
+};
+
+export default ComponentName;
+
+// 컴포넌트 파일 하단에 styled-components를 정의합니다.
+const Container = styled(SafeAreaView)`
+  flex: 1;
+  background-color: ${theme.colors.white};
+`;
+
+const TitleText = styled.Text`
+  font-size: ${theme.fonts.title}px;
+  color: ${theme.colors.primary};
+`;
+
+const InfoText = styled.Text`
+  font-size: ${theme.fonts.body}px;
+  color: ${theme.colors.gray800};
+`;
+```
+
+### 3. 스타일링 규칙
+
+- **`styled-components/native`** 사용을 원칙으로 합니다.
+- 컴포넌트 파일 하단에 관련 스타일 컴포넌트를 모아서 정의합니다.
+- 컴포넌트의 최상위 스타일 컴포넌트 이름은 \*\*`Container`\*\*로 통일합니다.
+- 색상, 폰트 등 모든 디자인 요소는 `src/styles/theme.ts` 파일을 참조합니다.
+- `gap` 속성 대신 `margin` 또는 `justify-content`를 사용하여 요소 간 간격을 조절합니다.
+
+### 4. 예시 컴포넌트
+
+#### **기본 버튼 컴포넌트 예시**
+
+```tsx
+// src/components/common/CommonButton.tsx
+import React from 'react';
+import styled from 'styled-components/native';
+import { theme } from '../../styles/theme';
+
+/**
+ * 공통 버튼 컴포넌트의 props 인터페이스
+ */
+interface ICommonButtonProps {
+  /** 버튼에 표시될 텍스트 */
+  text: string;
+  /** 버튼 클릭 시 실행될 함수 */
+  onPress: () => void;
+  /** 버튼 비활성화 여부 */
+  disabled?: boolean;
+}
+
+/**
+ * 앱 전반에서 사용될 공통 버튼 컴포넌트
+ * * @param props - 버튼 컴포넌트 props
+ * @returns 버튼 컴포넌트
+ */
+const CommonButton = ({
+  text,
+  onPress,
+  disabled = false,
+}: ICommonButtonProps) => {
+  return (
+    <Container onPress={onPress} disabled={disabled}>
+      <ButtonText disabled={disabled}>{text}</ButtonText>
+    </Container>
+  );
+};
+
+export default CommonButton;
+
+const Container = styled.TouchableOpacity<{ disabled: boolean }>`
+  width: 100%;
+  padding: 18px;
+  border-radius: 12px;
+  background-color: ${(props) =>
+    props.disabled ? theme.colors.gray200 : theme.colors.primary};
+  align-items: center;
+`;
+
+const ButtonText = styled.Text<{ disabled: boolean }>`
+  font-family: ${theme.fonts.Bold};
+  font-size: ${theme.fonts.body}px;
+  color: ${(props) =>
+    props.disabled ? theme.colors.gray500 : theme.colors.white};
+`;
+```

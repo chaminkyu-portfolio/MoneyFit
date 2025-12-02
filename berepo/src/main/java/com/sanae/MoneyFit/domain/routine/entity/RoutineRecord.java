@@ -1,0 +1,54 @@
+package com.sanae.MoneyFit.domain.routine.entity;
+
+
+import com.sanae.MoneyFit.domain.user.entity.User;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class RoutineRecord  {
+
+    @Column(name = "routine_record_id", updatable = false, unique = true, nullable = false)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "routine_id", nullable = false)
+    private Routine routine;
+
+    @Column(nullable = false)
+    private boolean doneCheck;
+    @Column(nullable = false)
+    private LocalDateTime createdDate;
+    @Column(nullable = false)
+    private LocalDateTime modifiedDate;
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public void setModifiedDate(LocalDateTime modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public void updateDoneCheck(boolean doneCheck) {
+        this.doneCheck = doneCheck;
+    }
+
+
+
+}
