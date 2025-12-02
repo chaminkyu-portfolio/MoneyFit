@@ -1,6 +1,0 @@
-[submodule "ferepo"]
-	path = ferepo
-	url = https://lab.ssafy.com/chac_2/frontendrepo
-[submodule "berepo"]
-	path = berepo
-	url = https://lab.ssafy.com/chac_2/backendrepo
